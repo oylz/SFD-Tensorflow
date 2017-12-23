@@ -1,0 +1,13 @@
+
+
+
+NPATH=${PATH/\/home\/xyz\/anaconda3\/bin:/}
+echo $PATH
+echo -----------
+echo $NPATH
+export PATH=$NPATH
+
+
+
+
+
