@@ -57,7 +57,6 @@ def TreateImage(image, data_format='NHWC', scope='ssd_preprocessing_train'):
                                       method=tf.image.ResizeMethod.BILINEAR,
                                       align_corners=False)
 
-
         # Image data format.
         if data_format == 'NCHW':
             image = tf.transpose(image, perm=(2, 0, 1))

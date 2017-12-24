@@ -34,7 +34,6 @@ config = tf.ConfigProto(log_device_placement=False, gpu_options=gpu_options)
 isess = tf.InteractiveSession(config=config)
 
 # Input placeholder.
-net_shape = (640, 640)
 data_format = 'NHWC'
 img_input = tf.placeholder(tf.uint8, shape=(None, None, 3))
 
@@ -42,12 +41,13 @@ image_pre = getter.TreateImage(img_input)
 image_4d = tf.expand_dims(image_pre, 0)
 
 # Define the SSD model.
-reuse = True if 'ssd_net' in locals() else None
+#reuse = True if 'ssd_net' in locals() else None
 ssd_net = ssd_vgg_640.SSDNet()
 
 print("+++++++++++++++++++++++++++++++++++++")
 with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
-    predictions, localisations, _, _ = ssd_net.net(image_4d, is_training=False, reuse=reuse)
+    #predictions, localisations, _, _ = ssd_net.net(image_4d, is_training=False, reuse=reuse)
+    predictions, localisations, _, _ = ssd_net.net(image_4d, is_training=False)
 
 print("======================mmmmmmmmmmmmmmmmmmmmm==========")
 # Restore SSD model.
@@ -57,6 +57,7 @@ saver = tf.train.Saver()
 saver.restore(isess, ckpt_filename)
 
 # SSD default anchor boxes.
+net_shape = getter.EVAL_SIZE
 ssd_anchors = ssd_net.anchors(net_shape)
 
 
@@ -64,13 +65,9 @@ ssd_anchors = ssd_net.anchors(net_shape)
 
 
 # Main image processing routine.
-def process_image(img, select_threshold=0.00999999977648, nms_threshold=0.300000011921, net_shape=(640, 640)):
+def process_image(img):
     # Run SSD network.
     
-    #rimg, rpredictions, rlocalisations = isess.run(
-    #                        [image_4d, predictions, localisations],
-    #                        feed_dict={img_input: img})
-
     rpredictions, rlocalisations = isess.run(
                             [predictions, localisations],
                             feed_dict={img_input: img})
@@ -80,19 +77,16 @@ def process_image(img, select_threshold=0.00999999977648, nms_threshold=0.300000
                        rpredictions, 
                        rlocalisations, 
                        ssd_anchors,
-                       select_threshold=select_threshold, 
-                       img_shape=net_shape, 
-                       num_classes=2, 
                        decode=True)
     print("[[[[rbboxes shape:", rbboxes.shape, "]]]]") 
     rclasses, rscores, rbboxes = np_methods.bboxes_sort(rclasses, 
                                             rscores, 
                                             rbboxes, 
                                             top_k=5000)
-    rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, 
-                                            rscores, 
-                                            rbboxes, 
-                                            nms_threshold=nms_threshold)
+    #rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, 
+    #                                        rscores, 
+    #                                        rbboxes, 
+    #                                        nms_threshold=nms_threshold)
     return rclasses, rscores, rbboxes
 
 
@@ -109,7 +103,8 @@ def plt_bboxes(img, classes, scores, bboxes, figsize=(10,10), linewidth=1.5):
         cls_id = int(classes[i])
         if cls_id >= 0:
             score = scores[i]
-            if cls_id!=1 or score<0.6:
+            #if cls_id!=1 or score<0.6:
+            if score<0.48:
                 continue
 
             if cls_id not in colors:
@@ -139,6 +134,7 @@ image_names = sorted(os.listdir(path))
 
 #pp =  path + image_names[-5]
 pp = "/home/xyz/code1/xyz2/img1/000380.jpg"
+#pp = "/home/xyz/code1/xyz2/img1/000117.jpg"
 
 print("=======[[[[[[" + pp + "]]]]]]========")
 img = mpimg.imread(pp)

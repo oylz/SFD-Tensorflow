@@ -184,7 +184,7 @@ def ssd_net(inputs,
 
 
         print("nnnn-block7 begin")
-        net = tf.layers.dropout(net, rate=dropout_keep_prob, training=is_training)
+        #xxxxxxxxx net = tf.layers.dropout(net, rate=dropout_keep_prob, training=is_training)
         net = slim.conv2d(net, 256, [1, 1], scope='llfc7')
         end_points['block7'] = net
         print("uuuu-block7 end")
@@ -192,12 +192,12 @@ def ssd_net(inputs,
 
         print("nnnn-block8 begin")
         # conv61->conv62
-        net = tf.layers.dropout(net, rate=dropout_keep_prob, training=is_training)
+        #xxxxxxxxxx net = tf.layers.dropout(net, rate=dropout_keep_prob, training=is_training)
         end_point = 'block8'
         with tf.variable_scope(end_point):
             # paper: 1x1x128
             net = slim.conv2d(net, 128, [1, 1], scope='mmconv1x1')
-            net = custom_layers.pad2d(net, pad=(1, 1))
+            #xxxxxxxxxx net = custom_layers.pad2d(net, pad=(1, 1))
             # paper: 3x3x512-s2
             net = slim.conv2d(net, 256, [3, 3], stride=2, scope='nnconv3x3', padding='VALID')
         end_points[end_point] = net
@@ -209,7 +209,7 @@ def ssd_net(inputs,
         with tf.variable_scope(end_point):
             # paper: 1x1x128
             net = slim.conv2d(net, 128, [1, 1], scope='ooconv1x1')
-            net = custom_layers.pad2d(net, pad=(1, 1))
+            #xxxxxxxxxxx net = custom_layers.pad2d(net, pad=(1, 1))
             # paper: 3x3x256-s2
             net = slim.conv2d(net, 128, [3, 3], stride=2, scope='ppconv3x3', padding='VALID')
         end_points[end_point] = net
@@ -236,7 +236,6 @@ def ssd_net(inputs,
             localisations.append(l)
         print("[final end]")
         return predictions, localisations, logits, end_points
-ssd_net.default_image_size = 640
 
 
 

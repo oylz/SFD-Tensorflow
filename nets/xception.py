@@ -114,7 +114,6 @@ def xception(inputs,
             end_points['predictions'] = prediction_fn(logits, scope='Predictions')
 
         return logits, end_points
-xception.default_image_size = 299
 
 
 def xception_arg_scope(weight_decay=0.00001, stddev=0.1):

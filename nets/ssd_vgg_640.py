@@ -26,7 +26,7 @@ class SSDNet(object):
         img_shape=(640, 640),
         num_classes=2,
         feat_layers=['block3', 'block4', 'block5', 'block7', 'block8', 'block9'],
-        feat_shapes=[(160, 160), (80, 80), (40, 40), (20, 20), (10, 10), (5, 5)],
+        feat_shapes=[(160., 160.), (80., 80.), (40., 40.), (20., 20.), (10., 10.), (5., 5.)],
         anchor_sizes=[(16.),
                       (32.),
                       (64.),
@@ -34,7 +34,7 @@ class SSDNet(object):
                       (256.),
                       (512.)],
 
-        anchor_steps=[4, 8, 16, 32, 64, 128],
+        anchor_steps=[4., 8., 16., 32., 64., 128.],
         anchor_offset=0.5,
         normalizations=[10, 8, 5, -1, -1, -1],
         prior_scaling=[0.1, 0.1, 0.2, 0.2]

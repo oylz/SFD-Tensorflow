@@ -2,9 +2,8 @@
 import numpy as np
 
 
-def ssd_bboxes_decode(feat_localizations,
-                      anchors_layer,
-                      #prior_scaling=[0.1, 0.1, 0.2, 0.2]):
+def ssd_bboxes_decode(rlocalisations,
+                      ssd_anchors,
                       prior_scaling=[.1, .1, .2, .2]):
     """Compute the relative bounding boxes from the layer features and
     reference anchor bounding boxes.
@@ -13,32 +12,30 @@ def ssd_bboxes_decode(feat_localizations,
       numpy array Nx4: ymin, xmin, ymax, xmax
     """
     # Reshape for easier broadcasting.
-    l_shape = feat_localizations.shape
+    l_shape = rlocalisations.shape
     print("l_shape[", l_shape, "]l_shape")
 
-    feat_localizations = np.reshape(feat_localizations,
+    rlocalisations = np.reshape(rlocalisations,
                                     (-1, l_shape[-2], l_shape[-1]))
-    #feat_localizations = np.reshape(feat_localizations,
-    #                                (-1, 1, 4)) # xxxxxxxxxxxxxxxxxxxxxx
-    print("feat_localizations new shape:", feat_localizations.shape)
-    #print("anchors_layer", anchors_layer)
+    print("rlocalisations new shape:", rlocalisations.shape)
+    #print("ssd_anchors", ssd_anchors)
 
 
-    yref, xref, href, wref = anchors_layer
+    yref, xref, href, wref = ssd_anchors
     xref = np.reshape(xref, [-1, 1])
     yref = np.reshape(yref, [-1, 1])
 
     # Compute center, height and width
-    cx = feat_localizations[:, :, 0] * wref * prior_scaling[0] + xref
-    cy = feat_localizations[:, :, 1] * href * prior_scaling[1] + yref
-    w = wref * np.exp(feat_localizations[:, :, 2] * prior_scaling[2])
-    h = href * np.exp(feat_localizations[:, :, 3] * prior_scaling[3])
+    cx = rlocalisations[:, :, 0] * wref * prior_scaling[0] + xref
+    cy = rlocalisations[:, :, 1] * href * prior_scaling[1] + yref
+    w = wref * np.exp(rlocalisations[:, :, 2] * prior_scaling[2])
+    h = href * np.exp(rlocalisations[:, :, 3] * prior_scaling[3])
     print("cx[", cx.shape) #, cx, "]")
     print("cy[", cy.shape) #, cy, "]")
     print("w[", w.shape) #, w, "]")
     print("h[", h.shape) #, h, "]")
     # bboxes: ymin, xmin, xmax, ymax.
-    bboxes = np.zeros_like(feat_localizations)
+    bboxes = np.zeros_like(rlocalisations)
     bboxes[:, :, 0] = (cy - h / 2.) 
     bboxes[:, :, 1] = (cx - w / 2.)
     bboxes[:, :, 2] = (cy + h / 2.)
@@ -48,12 +45,9 @@ def ssd_bboxes_decode(feat_localizations,
     return bboxes
 
 
-def TreateBoxesCore(predictions_layer,
-                            localizations_layer,
-                            anchors_layer,
-                            select_threshold,
-                            img_shape,
-                            num_classes,
+def TreateBoxesCore(rpredictions,
+                            rlocalisations,
+                            ssd_anchors,
                             decode):
     """Extract classes, scores and bounding boxes from features in one layer.
 
@@ -62,46 +56,37 @@ def TreateBoxesCore(predictions_layer,
     """
     # First decode localizations features if necessary.
     if decode:
-        localizations_layer = ssd_bboxes_decode(localizations_layer, anchors_layer)
+        rlocalisations = ssd_bboxes_decode(rlocalisations, ssd_anchors)
 
-    ps = predictions_layer.shape
-    print("predictions_layer first shape:", ps)
-    print("localizations_layer first shape:", localizations_layer.shape)
+    ps = rpredictions.shape
+    print("rpredictions first shape:", ps)
+    print("rlocalisations first shape:", rlocalisations.shape)
 
     # Reshape features to: Batches x N x N_labels | 4.
-    p_shape = predictions_layer.shape
+    p_shape = rpredictions.shape
     batch_size = p_shape[0] if len(p_shape) == 5 else 1
-    #xxxxxxxxxxxxxxxxxxxxxxxxxpredictions_layer = np.reshape(predictions_layer,
-    #                               (batch_size, -1, p_shape[-1]))
-    l_shape = localizations_layer.shape
+
+    l_shape = rlocalisations.shape
     print("l_shape:", l_shape)
-    # nnnxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    predictions_layer = np.reshape(predictions_layer, 
-                                   (batch_size, ps[1]*ps[2], -1)) #p_shape[-1])) #ps[-1])) #xxxxxxxxxxx ps[1]*ps[2]))
-    # uuuxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    rpredictions = np.reshape(rpredictions, 
+                                   (batch_size, ps[1]*ps[2], -1)) 
 
-    localizations_layer = np.reshape(localizations_layer,
-                                     (batch_size, -1, l_shape[-1])) #p_shape[-1])) #ps[-1])) #xxxxxxxxx l_shape[-1]))
+    rlocalisations = np.reshape(rlocalisations,
+                                     (batch_size, -1, l_shape[-1])) 
 
-    print("predictions_layer second shape:", predictions_layer.shape)
-    print("localizations_layer second shape:", localizations_layer.shape)
+    print("rpredictions second shape:", rpredictions.shape)
+    print("rlocalisations second shape:", rlocalisations.shape)
 
 
     # Boxes selection: use threshold or score > no-label criteria.
-    if select_threshold is None or select_threshold == 0:
-        # Class prediction and scores: assign 0. to 0-class
-        classes = np.argmax(predictions_layer, axis=2)
-        scores = np.amax(predictions_layer, axis=2)
-        mask = (classes > 0)
-        classes = classes[mask]
-        scores = scores[mask]
-        bboxes = localizations_layer[mask]
-    else:
-        sub_predictions = predictions_layer[:, :, 1:]
-        idxes = np.where(sub_predictions > select_threshold)
-        classes = idxes[-1]+1
-        scores = sub_predictions[idxes]
-        bboxes = localizations_layer[idxes[:-1]]
+    # Class prediction and scores: assign 0. to 0-class
+    classes = np.argmax(rpredictions, axis=2)
+    scores = np.amax(rpredictions, axis=2)
+    #mask = (classes > 0)
+    mask = (classes == 1) #xxxxxxxxxxxxxxxxxxxxxxxxxxyy
+    classes = classes[mask]
+    scores = scores[mask]
+    bboxes = rlocalisations[mask]
 
     return classes, scores, bboxes
 
@@ -109,9 +94,6 @@ def TreateBoxesCore(predictions_layer,
 def TreateBoxes(predictions_net,
                       localizations_net,
                       anchors_net,
-                      select_threshold,
-                      img_shape,
-                      num_classes,
                       decode):
     """Extract classes, scores and bounding boxes from network output layers.
 
@@ -127,10 +109,9 @@ def TreateBoxes(predictions_net,
                         predictions_net[i], 
                         localizations_net[i], 
                         anchors_net[i],
-                        select_threshold, 
-                        img_shape, 
-                        num_classes, 
                         decode)
+        #if not (i==0):
+        #    continue
         l_classes.append(classes)
         l_scores.append(scores)
         l_bboxes.append(bboxes)
