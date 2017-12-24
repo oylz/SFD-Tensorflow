@@ -9,8 +9,7 @@ import tf_extended as tfe
 from nets import  base640
 
 
-SSDParams = namedtuple('SSDParameters', ['img_shape', 
-                                         'num_classes',
+SSDParams = namedtuple('SSDParameters', ['num_classes',
                                          'feat_layers',
                                          'feat_shapes',
                                          'anchor_sizes',
@@ -23,7 +22,6 @@ SSDParams = namedtuple('SSDParameters', ['img_shape',
 
 class SSDNet(object):
     default_params = SSDParams(
-        img_shape=(640, 640),
         num_classes=2,
         feat_layers=['block3', 'block4', 'block5', 'block7', 'block8', 'block9'],
         feat_shapes=[(160., 160.), (80., 80.), (40., 40.), (20., 20.), (10., 10.), (5., 5.)],

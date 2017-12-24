@@ -83,10 +83,10 @@ def process_image(img):
                                             rscores, 
                                             rbboxes, 
                                             top_k=5000)
-    rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, 
-                                            rscores, 
-                                            rbboxes, 
-                                            nms_threshold=0.45)#nms_threshold)
+    #rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, 
+    #                                        rscores, 
+    #                                        rbboxes, 
+    #                                        nms_threshold=0.45)#nms_threshold)
     return rclasses, rscores, rbboxes
 
 
@@ -104,7 +104,7 @@ def plt_bboxes(img, classes, scores, bboxes, figsize=(10,10), linewidth=1.5):
         if cls_id >= 0:
             score = scores[i]
             #if cls_id!=1 or score<0.6:
-            if score<0.8:
+            if score<0.6:
                 continue
 
             if cls_id not in colors:
@@ -113,6 +113,7 @@ def plt_bboxes(img, classes, scores, bboxes, figsize=(10,10), linewidth=1.5):
             xmin = int(bboxes[i, 1] * width)
             ymax = int(bboxes[i, 2] * height)
             xmax = int(bboxes[i, 3] * width)
+            print("drawrect(", xmin, ymin, xmax, ymax, ")")
             rect = plt.Rectangle((xmin, ymin), xmax - xmin,
                                  ymax - ymin, fill=False,
                                  edgecolor=colors[cls_id],
@@ -133,8 +134,8 @@ path = './demo/'
 image_names = sorted(os.listdir(path))
 
 #pp =  path + image_names[-5]
-pp = "/home/xyz/code1/xyz2/img1/000380.jpg"
-#pp = "/home/xyz/code1/xyz2/img1/000117.jpg"
+#pp = "/home/xyz/code1/xyz2/img1/000380.jpg"
+pp = "/home/xyz/code1/xyz2/img1/000117.jpg"
 
 print("=======[[[[[[" + pp + "]]]]]]========")
 img = mpimg.imread(pp)

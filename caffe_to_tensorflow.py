@@ -4,6 +4,7 @@ import tensorflow as tf
 
 from nets import caffe_scope
 from nets import ssd_vgg_640
+from util import getter 
 
 slim = tf.contrib.slim
 
@@ -24,7 +25,7 @@ def main(_):
         global_step = slim.create_global_step()
 
         ssd_net = ssd_vgg_640.SSDNet()
-        ssd_shape = ssd_net.params.img_shape
+        ssd_shape = getter.EVAL_SIZE
 
         # Image placeholder and model.
         shape = (1, ssd_shape[0], ssd_shape[1], 3)
