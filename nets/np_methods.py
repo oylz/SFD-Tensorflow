@@ -4,7 +4,8 @@ import numpy as np
 
 def ssd_bboxes_decode(rlocalisations,
                       ssd_anchors,
-                      prior_scaling=[.1, .1, .2, .2]):
+                      #prior_scaling=[.1, .1, .2, .2]):
+                      prior_scaling=[0.10000000149, 0.10000000149, 0.20000000298, 0.20000000298]):
     """Compute the relative bounding boxes from the layer features and
     reference anchor bounding boxes.
 

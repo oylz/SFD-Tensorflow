@@ -104,7 +104,7 @@ def plt_bboxes(img, classes, scores, bboxes, figsize=(10,10), linewidth=1.5):
         if cls_id >= 0:
             score = scores[i]
             #if cls_id!=1 or score<0.6:
-            if score<0.48:
+            if score<0.8:
                 continue
 
             if cls_id not in colors:

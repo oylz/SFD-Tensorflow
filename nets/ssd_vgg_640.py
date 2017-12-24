@@ -36,8 +36,21 @@ class SSDNet(object):
 
         anchor_steps=[4., 8., 16., 32., 64., 128.],
         anchor_offset=0.5,
-        normalizations=[10, 8, 5, -1, -1, -1],
+        normalizations=[10., 8., 5., -1., -1., -1.], #type: "Normalize"  layers value
         prior_scaling=[0.1, 0.1, 0.2, 0.2]
+        #
+        #min_size: 45.0  anchor_size
+        #max_size: 99.0  anchor_size
+        #aspect_ratio: 2.0
+        #aspect_ratio: 3.0
+        #flip: true
+        #clip: false
+        #variance: 0.1
+        #variance: 0.1
+        #variance: 0.2
+        #variance: 0.2
+        #step: 16.0 anchor_step
+        #
         )
 
     def __init__(self, params=None):
