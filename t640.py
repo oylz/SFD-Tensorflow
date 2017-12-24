@@ -83,10 +83,10 @@ def process_image(img):
                                             rscores, 
                                             rbboxes, 
                                             top_k=5000)
-    #rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, 
-    #                                        rscores, 
-    #                                        rbboxes, 
-    #                                        nms_threshold=nms_threshold)
+    rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, 
+                                            rscores, 
+                                            rbboxes, 
+                                            nms_threshold=0.45)#nms_threshold)
     return rclasses, rscores, rbboxes
 
 
