@@ -9,19 +9,6 @@ from nets import custom_layers
 
 slim = tf.contrib.slim
 
-#http://blog.csdn.net/felaim/article/details/69759183
-def conv2d(inputs, num_outputs, kernel_sizes, stride, scope = None):
-    kernel_size = kernel_sizes[0]
-    if stride == 1:
-        return slim.conv2d(inputs, num_outputs, kernel_size, stride = 1, padding = 'SAME', scope = scope)
-    else:
-        #pad_total = kernel_size - 1
-        #pad_beg = pad_total // 2
-        #pad_end = pad_total - pad_beg
-        #inputs = tf.pad(inputs, [[0, 0], [pad_beg, pad_end], [pad_beg, pad_end], [0, 0]])
-        #return slim.conv2d(inputs, num_outputs, kernel_size, stride = stride, padding = 'VALID', scope = scope)
-        return slim.conv2d(inputs, num_outputs, kernel_sizes, stride = stride, padding = 'VALID', scope = scope)
-
 
 # only used in flow function:AnchorAllLayers(), final for outapp to detect
 def AnchorOneLayer(img_shape,
@@ -108,10 +95,9 @@ def MultiboxLayer(addn,
     print("nnnn------------begin MultiboxLayer----------nnnn")
 
     num_loc_pred = 4 # [4] no used if caffe convert.
-    loc_pred = slim.conv2d(net, num_loc_pred, [3, 3], activation_fn=None,
+    loc_pred = slim.conv2d(net, num_loc_pred, [3, 3], 
+                           activation_fn=None,
                            scope='conv_loc')
-    #loc_pred = conv2d(net, num_loc_pred, [3, 3], 1,
-    #                       scope='conv_loc')
     print("====loc_pred0:", loc_pred)
 
     loc_pred = custom_layers.channel_to_last(loc_pred)
@@ -128,10 +114,9 @@ def MultiboxLayer(addn,
 
     # Class prediction.
     num_cls_pred = (num_anchors+addn)*2 #no used if caffe convert
-    cls_pred = slim.conv2d(net, num_cls_pred, [3, 3], activation_fn=None,
+    cls_pred = slim.conv2d(net, num_cls_pred, [3, 3], 
+                           activation_fn=None,
                            scope='conv_cls')
-    #cls_pred = conv2d(net, num_cls_pred, [3, 3], 1,
-    #                       scope='conv_cls')
     print("====num_cls_pred:", num_cls_pred, ", cls_pred0:", cls_pred)
 
     cls_pred = custom_layers.channel_to_last(cls_pred)
@@ -160,41 +145,44 @@ def ssd_net(inputs,
     with tf.variable_scope(scope, 'ssd_640_vgg', [inputs], reuse=reuse):
         # Original VGG-16 blocks.
         print("nnnn-block1 begin")
-        net = slim.repeat(inputs, 2, slim.conv2d, 16, [3, 3], scope='r2_crcr1')
-        #net = slim.repeat(inputs, 2, conv2d, 16, [3, 3], 1, scope='r2_crcr1')
+        net = slim.repeat(inputs, 2, slim.conv2d, 16, [3, 3], scope='r2_crcr1', 
+                         activation_fn=tf.nn.relu)
         end_points['block1'] = net
         print("uuuu-block1 end")
 
         print("nnnn-block2 begin")
-        net = slim.max_pool2d(net, [2, 2], scope='bbpool1')
-        net = slim.repeat(net, 2, slim.conv2d, 32, [3, 3], scope='r2_crcr2')
-        #net = slim.repeat(net, 2, conv2d, 32, [3, 3], 1, scope='r2_crcr2')
+        net = slim.max_pool2d(net, [2, 2], scope='bbpool1',
+                         stride=2)
+        net = slim.repeat(net, 2, slim.conv2d, 32, [3, 3], scope='r2_crcr2', 
+                         activation_fn=tf.nn.relu)
         end_points['block2'] = net
         print("uuuu-block2 end")
 
 
         print("nnnn-block3 begin")
-        net = slim.max_pool2d(net, [2, 2], scope='ddpool2')
-        net = slim.repeat(net, 3, slim.conv2d, 64, [3, 3], scope='r3_crcr3')
-        #net = slim.repeat(net, 3, conv2d, 64, [3, 3], 1, scope='r3_crcr3')
+        net = slim.max_pool2d(net, [2, 2], scope='ddpool2',
+                         stride=2)
+        net = slim.repeat(net, 3, slim.conv2d, 64, [3, 3], scope='r3_crcr3', 
+                         activation_fn=tf.nn.relu)
         end_points['block3'] = net
         print("uuuu-block3 end")
 
 
         print("nnnn-block4 begin")
-        net = slim.max_pool2d(net, [2, 2], scope='ffpool3')
-        net = slim.repeat(net, 3, slim.conv2d, 128, [3, 3], scope='r3_crcr4')
-        #net = slim.repeat(net, 3, conv2d, 128, [3, 3], 1, scope='r3_crcr4')
+        net = slim.max_pool2d(net, [2, 2], scope='ffpool3',
+                         stride=2)
+        net = slim.repeat(net, 3, slim.conv2d, 128, [3, 3], scope='r3_crcr4', 
+                        activation_fn=tf.nn.relu)
         end_points['block4'] = net
         print("uuuu-block4 end")
 
 
         print("nnnn-block5 begin")
-        net = slim.max_pool2d(net, [2, 2], scope='hhpool4')
+        net = slim.max_pool2d(net, [2, 2], scope='hhpool4',
+                         stride=2)
         # rate as `[dilation]`/`pad` in prototxt?, if is `[dilation]` then set rate=1
-        #oylzoylzoylz net = slim.repeat(net, 3, slim.conv2d, 128, [3, 3], rate=1, scope='r3_crcr5')
-        net = slim.repeat(net, 3, slim.conv2d, 128, [3, 3], scope='r3_crcr5')
-        #net = slim.repeat(net, 3, conv2d, 128, [3, 3], 1, scope='r3_crcr5')
+        net = slim.repeat(net, 3, slim.conv2d, 128, [3, 3], rate=1, scope='r3_crcr5', 
+                        activation_fn=tf.nn.relu)
         end_points['block5'] = net
         print("uuuu-block5 end")
 
@@ -202,17 +190,16 @@ def ssd_net(inputs,
         print("nnnn-block6 begin")
         # pool5: kernel_size: 3->2, stride: 1->2, +pad:1,, where to put `pad:1`?
         net = slim.max_pool2d(net, [2, 2], stride=2, scope='jjpool5')
-        #oylzoylzoylz net = slim.conv2d(net, 256, [3, 3], rate=1, scope='kkfc6')
-        net = slim.conv2d(net, 256, [3, 3], scope='kkfc6')
-        #net = conv2d(net, 256, [3, 3], 1, scope='kkfc6')
+        net = slim.conv2d(net, 256, [3, 3], scope='kkfc6',
+                        activation_fn=tf.nn.relu)
         end_points['block6'] = net
         print("uuuu-block6 end")
 
 
         print("nnnn-block7 begin")
         #oylzoylzoylz net = tf.layers.dropout(net, rate=dropout_keep_prob, training=is_training)
-        net = slim.conv2d(net, 256, [1, 1], scope='llfc7')
-        #net = conv2d(net, 256, [1, 1], 1, scope='llfc7')
+        net = slim.conv2d(net, 256, [1, 1], scope='llfc7', 
+                        activation_fn=tf.nn.relu)
         end_points['block7'] = net
         print("uuuu-block7 end")
 
@@ -223,12 +210,12 @@ def ssd_net(inputs,
         end_point = 'block8'
         with tf.variable_scope(end_point):
             # paper: 1x1x128
-            net = slim.conv2d(net, 128, [1, 1], scope='mmconv1x1')
-            #net = conv2d(net, 128, [1, 1], 1, scope='mmconv1x1')
-            #xxxxxxxxxx net = custom_layers.pad2d(net, pad=(1, 1))
+            net = slim.conv2d(net, 128, [1, 1], scope='mmconv1x1', 
+                        activation_fn=tf.nn.relu)
+            net = custom_layers.pad2d(net, pad=(1, 1))
             # paper: 3x3x512-s2
-            net = slim.conv2d(net, 256, [3, 3], stride=2, scope='nnconv3x3', padding='VALID')
-            #net = conv2d(net, 256, [3, 3], 2, scope='nnconv3x3')
+            net = slim.conv2d(net, 256, [3, 3], stride=2, scope='nnconv3x3', padding='VALID', 
+                        activation_fn=tf.nn.relu)
         end_points[end_point] = net
         print("uuuu-block8 end")
 
@@ -237,12 +224,12 @@ def ssd_net(inputs,
         # conv71->conv72
         with tf.variable_scope(end_point):
             # paper: 1x1x128
-            net = slim.conv2d(net, 128, [1, 1], scope='ooconv1x1')
-            #net = conv2d(net, 128, [1, 1], 1, scope='ooconv1x1')
-            #xxxxxxxxxxx net = custom_layers.pad2d(net, pad=(1, 1))
+            net = slim.conv2d(net, 128, [1, 1], scope='ooconv1x1',
+                        activation_fn=tf.nn.relu)
+            net = custom_layers.pad2d(net, pad=(1, 1))
             # paper: 3x3x256-s2
-            net = slim.conv2d(net, 128, [3, 3], stride=2, scope='ppconv3x3', padding='VALID')
-            #net = conv2d(net, 128, [3, 3], 2, scope='ppconv3x3')
+            net = slim.conv2d(net, 128, [3, 3], stride=2, scope='ppconv3x3', padding='VALID',
+                        activation_fn=tf.nn.relu)
         end_points[end_point] = net
         print("uuuu-block9 end")
 
@@ -252,6 +239,13 @@ def ssd_net(inputs,
         logits = []
         localisations = []
         addn = 1
+#atation, in `process block3` 3 layers more than ori ssd-300 prototxt:
+#  [
+#  name: "conv3_3_norm_mbox_conf_maxout"
+#  name: "conv3_3_norm_mbox_conf_maxout_slice"
+#  name: "conv3_3_bg_maxout"
+#  ]
+#
         for i, layer in enumerate(feat_layers):
             with tf.variable_scope(layer + '_box'):
                 print("nnnn-begin process----" + layer + '_box')

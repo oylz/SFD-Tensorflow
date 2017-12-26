@@ -49,6 +49,8 @@ with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
     #predictions, localisations, _, _ = ssd_net.net(image_4d, is_training=False, reuse=reuse)
     predictions, localisations, _, _ = ssd_net.net(image_4d, is_training=False)
 
+print("~~~~~~~~predictions:", predictions)
+print("~~~~~~~~localisations:", localisations)
 print("======================mmmmmmmmmmmmmmmmmmmmm==========")
 # Restore SSD model.
 ckpt_filename = './tt/s3fd/SFD_fast_v2.ckpt'
@@ -104,6 +106,7 @@ def plt_bboxes(img, classes, scores, bboxes, figsize=(10,10), linewidth=1.5):
         if cls_id >= 0:
             score = scores[i]
             #if cls_id!=1 or score<0.6:
+            #if score<0.6:
             if score<0.6:
                 continue
 
@@ -135,7 +138,7 @@ image_names = sorted(os.listdir(path))
 
 #pp =  path + image_names[-5]
 #pp = "/home/xyz/code1/xyz2/img1/000380.jpg"
-pp = "/home/xyz/code1/xyz2/img1/000117.jpg"
+pp = "/home/xyz/code1/xyz/img1/000417.jpg"
 
 print("=======[[[[[[" + pp + "]]]]]]========")
 img = mpimg.imread(pp)
