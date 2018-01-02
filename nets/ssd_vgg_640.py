@@ -75,9 +75,9 @@ class SSDNet(object):
                     scope=scope)
         print("isFeatShape:", isFeatShape)
         # Update feature shapes (try at least!)
-        if isFeatShape:
-            shapes = base640.FeatShapesFromNet(r[0], self.params.feat_shapes)
-            self.params = self.params._replace(feat_shapes=shapes)
+        #if isFeatShape:
+        #    shapes = base640.FeatShapesFromNet(r[0], self.params.feat_shapes)
+        #    self.params = self.params._replace(feat_shapes=shapes)
         return r
 
     def arg_scope(self, weight_decay=0.0005, data_format='NHWC'):

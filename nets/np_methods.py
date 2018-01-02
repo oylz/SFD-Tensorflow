@@ -111,8 +111,8 @@ def TreateBoxes(predictions_net,
                         localizations_net[i], 
                         anchors_net[i],
                         decode)
-        #if not (i==0):
-        #    continue
+        if (i==0 or i==1 or i==2):
+            continue
         l_classes.append(classes)
         l_scores.append(scores)
         l_bboxes.append(bboxes)

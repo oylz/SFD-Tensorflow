@@ -84,11 +84,11 @@ def process_image(img):
     rclasses, rscores, rbboxes = np_methods.bboxes_sort(rclasses, 
                                             rscores, 
                                             rbboxes, 
-                                            top_k=5000)
-    #rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, 
-    #                                        rscores, 
-    #                                        rbboxes, 
-    #                                        nms_threshold=0.45)#nms_threshold)
+                                            top_k=500)
+    rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, 
+                                            rscores, 
+                                            rbboxes, 
+                                            nms_threshold=0.45)#nms_threshold)
     return rclasses, rscores, rbboxes
 
 
@@ -140,14 +140,17 @@ image_names = sorted(os.listdir(path))
 #pp = "/home/xyz/code1/xyz2/img1/000380.jpg"
 pp = "/home/xyz/code1/xyz/img1/000417.jpg"
 
-print("=======[[[[[[" + pp + "]]]]]]========")
-img = mpimg.imread(pp)
+for i in range(150, 600):
+    s = str(i)
+    s = s.zfill(6)
+    pp = "/home/xyz/code1/xyz/img1/" + s
+    pp = pp + ".jpg"
+    print("=======[[[[[[" + pp + "]]]]]]========")
+    img = mpimg.imread(pp)
+    rclasses, rscores, rbboxes =  process_image(img)
 
-#dimg = getter.TreateImage(img)
-rclasses, rscores, rbboxes =  process_image(img)
-
-print("***************rbboxes[", rbboxes, "]*****************")
-plt_bboxes(img, rclasses, rscores, rbboxes)
+    print("***************rbboxes[", rbboxes, "]*****************")
+    plt_bboxes(img, rclasses, rscores, rbboxes)
 
 
 
